@@ -1,0 +1,30 @@
+# 本文件是 Forge 识别模组的“身份证”。
+#
+# 重要：forge 依赖只要求 47 这个大版本（不写死小版本号）。
+# Minecraft 1.20.1 的所有 Forge 版本都是 47.x，所以 47.1.x / 47.2.x / 47.3.x / 47.4.x
+# 都能正常加载本模组。之前写死 [47.4.0,) 会让大部分玩家的 Forge 判定“版本过低”而拒绝加载。
+modLoader="javafml"
+loaderVersion="[47,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="mod_1201a951"
+version="1.0.0-r4"
+displayName="神·不再寂寞"
+authors="AutoMods"
+description='''终极模组：唯一武器「神·不再寂寞」。服务端、单人存档、客户端通用（Minecraft 1.20.1 / Forge 47.x）。'''
+
+[[dependencies.mod_1201a951]]
+modId="forge"
+mandatory=true
+versionRange="[47,)"
+ordering="NONE"
+side="BOTH"
+
+# side="BOTH"：客户端和服务端都可以装（单人存档、联机客户端、专用服务器通用）。
+[[dependencies.mod_1201a951]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.20.2)"
+ordering="NONE"
+side="BOTH"
