@@ -1,0 +1,1 @@
+这里是file.bitcat.dpdns.org的软件仓库.

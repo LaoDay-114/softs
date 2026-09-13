@@ -1,0 +1,52 @@
+name: BitCat114 Auto Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dist/**'       # 仅当 dist/ 目录有变更时触发
+  workflow_dispatch:     # 支持手动触发
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write    # 必须：允许创建 Release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate Tag
+        id: tag
+        run: |
+          TAG="v$(date +'%Y.%m%d.%H%M')"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Generated tag: ${TAG}"
+
+      - name: Check Files
+        id: check
+        run: |
+          COUNT=$(find dist/ -type f | wc -l)
+          echo "count=${COUNT}" >> $GITHUB_OUTPUT
+          if [ "$COUNT" -eq 0 ]; then
+            echo "dist/ 目录为空，跳过发布"
+          fi
+
+      - name: Create Release & Upload Assets
+        if: steps.check.outputs.count != '0'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "BitCat114 Build ${{ steps.tag.outputs.tag }}"
+          body: |
+            🤖 **Auto Release by BitCat114 CI**
+            
+            - Commit: `${{ github.sha }}`
+            - Triggered by: @${{ github.actor }}
+            - Files: ${{ steps.check.outputs.count }}
+          files: dist/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
