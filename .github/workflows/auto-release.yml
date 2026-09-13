@@ -1,40 +1,45 @@
 name: BitCat114 Auto Release
-
 on:
   push:
     branches: [main]
     paths:
       - 'dist/**'       # 仅当 dist/ 目录有变更时触发
   workflow_dispatch:     # 支持手动触发
-
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write    # 必须：允许创建 Release
-
+      contents: write    # 必须：允许创建 Release & commit filelist.json
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
       - name: Generate Tag
         id: tag
         run: |
           TAG="v$(date +'%Y.%m%d.%H%M')"
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
           echo "Generated tag: ${TAG}"
-
-      - name: Check Files
-        id: check
+      - name: Generate dist/filelist.json
         run: |
-          COUNT=$(find dist/ -type f | wc -l)
-          echo "count=${COUNT}" >> $GITHUB_OUTPUT
-          if [ "$COUNT" -eq 0 ]; then
-            echo "dist/ 目录为空，跳过发布"
+          FILES=$(find dist/ -type f | sort)
+          echo "$FILES" | jq -R . | jq -s . > dist/filelist.json
+          cat dist/filelist.json
+      - name: Commit filelist.json
+        run: |
+          git config --global user.name "BitCat114 CI"
+          git config --global user.email "ci@bitcat114.dev"
+          git add dist/filelist.json
+          # 有变更才提交
+          if git diff --cached --quiet; then
+            echo "no change for filelist.json"
+          else
+            git commit -m "CI: update dist/filelist.json for ${{ steps.tag.outputs.tag }}"
           fi
-
-      - name: Create Release & Upload Assets
-        if: steps.check.outputs.count != '0'
+      - name: Push commit
+        run: git push
+      - name: Create Release & Tag（无资产）
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
@@ -44,8 +49,6 @@ jobs:
             
             - Commit: `${{ github.sha }}`
             - Triggered by: @${{ github.actor }}
-            - Files: ${{ steps.check.outputs.count }}
-          files: dist/*
           draft: false
           prerelease: false
         env:
